@@ -1,0 +1,108 @@
+@startuml University_ER_Diagram
+
+!define primary_key(x) <b><color:red>PK:</color> x</b>
+!define foreign_key(x) <color:blue>FK:</color> x
+!define unique(x) <color:green>UK:</color> x
+
+entity "DEPARTMENT" as dept {
+  primary_key(department_id) : INTEGER
+  unique(department_name) : VARCHAR(100)
+  unique(department_code) : VARCHAR(10)
+  building : VARCHAR(50)
+  phone : VARCHAR(15)
+}
+
+entity "PROFESSOR" as prof {
+  primary_key(professor_id) : INTEGER
+  first_name : VARCHAR(50)
+  last_name : VARCHAR(50)
+  unique(email) : VARCHAR(100)
+  phone : VARCHAR(15)
+  office_location : VARCHAR(50)
+  hire_date : DATE
+  foreign_key(department_id) : INTEGER
+}
+
+entity "CLASSROOM" as room {
+  primary_key(classroom_id) : INTEGER
+  unique(room_number) : VARCHAR(20)
+  building : VARCHAR(50)
+  capacity : INTEGER
+  equipment : VARCHAR(200)
+}
+
+entity "COURSE" as course {
+  primary_key(course_id) : INTEGER
+  unique(course_code) : VARCHAR(10)
+  course_name : VARCHAR(100)
+  credits : INTEGER
+  max_capacity : INTEGER
+  semester : VARCHAR(20)
+  year : INTEGER
+  foreign_key(professor_id) : INTEGER
+  foreign_key(department_id) : INTEGER
+  foreign_key(classroom_id) : INTEGER
+}
+
+entity "STUDENT" as student {
+  primary_key(student_id) : INTEGER
+  first_name : VARCHAR(50)
+  last_name : VARCHAR(50)
+  unique(email) : VARCHAR(100)
+  date_of_birth : DATE
+  phone : VARCHAR(15)
+  enrollment_date : DATE
+  foreign_key(department_id) : INTEGER
+}
+
+entity "ENROLLMENT" as enroll {
+  primary_key(enrollment_id) : INTEGER
+  foreign_key(student_id) : INTEGER
+  foreign_key(course_id) : INTEGER
+  enrollment_date : DATE
+  grade : DECIMAL(5,2)
+  status : VARCHAR(20)
+}
+
+' Relationships
+dept ||--o{ prof : "employs"
+dept ||--o{ course : "offers"
+prof ||--o{ course : "teaches"
+room ||--o{ course : "hosts"
+student ||--o{ enroll : "has"
+course ||--o{ enroll : "contains"
+
+note right of dept
+  <b>DEPARTMENT</b>
+  Academic departments
+  organizing courses
+  and faculty
+end note
+
+note right of enroll
+  <b>ENROLLMENT</b>
+  Junction table for
+  many-to-many relationship
+  between STUDENT and COURSE
+
+  Status values:
+  - active
+  - completed
+  - dropped
+  - withdrawn
+end note
+
+note bottom of course
+  <b>COURSE</b>
+  Must reference:
+  - One professor
+  - One department
+  - One classroom
+
+  Constraints:
+  - max_capacity <= classroom.capacity
+  - credits: 1-6
+  - semester: Fall/Spring/Summer/Winter
+end note
+
+@enduml
