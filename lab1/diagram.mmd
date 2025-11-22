@@ -1,0 +1,67 @@
+erDiagram
+    STUDENT ||--o{ ENROLLMENT : "enrolls in"
+    COURSE ||--o{ ENROLLMENT : "has enrolled"
+    PROFESSOR ||--o{ COURSE : "teaches"
+    DEPARTMENT ||--o{ COURSE : "offers"
+    DEPARTMENT ||--o{ PROFESSOR : "employs"
+    CLASSROOM ||--o{ COURSE : "hosts"
+
+    STUDENT {
+        int student_id PK
+        string first_name
+        string last_name
+        string email UK
+        date date_of_birth
+        string phone
+        date enrollment_date
+        int department_id FK
+    }
+
+    PROFESSOR {
+        int professor_id PK
+        string first_name
+        string last_name
+        string email UK
+        string phone
+        string office_location
+        date hire_date
+        int department_id FK
+    }
+
+    COURSE {
+        int course_id PK
+        string course_code UK
+        string course_name
+        int credits
+        int max_capacity
+        string semester
+        int year
+        int professor_id FK
+        int department_id FK
+        int classroom_id FK
+    }
+
+    DEPARTMENT {
+        int department_id PK
+        string department_name UK
+        string department_code UK
+        string building
+        string phone
+    }
+
+    ENROLLMENT {
+        int enrollment_id PK
+        int student_id FK
+        int course_id FK
+        date enrollment_date
+        float grade
+        string status
+    }
+
+    CLASSROOM {
+        int classroom_id PK
+        string room_number UK
+        string building
+        int capacity
+        string equipment
+    }
