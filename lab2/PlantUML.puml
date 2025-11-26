@@ -5,8 +5,8 @@ left to right direction
 actor "Student" as student
 actor "Professor" as professor
 actor "Administrator" as admin
-actor "Payment System" as payment << External System >>
-actor "Email Service" as email << External System >>
+rectangle "Payment System" as payment << External System >>
+rectangle "Email Service" as email << External System >>
 
 package "University Course Management System" {
 
