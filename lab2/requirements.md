@@ -29,3 +29,28 @@
 | FR23 | System must enforce course capacity limits | High | Enrollment |
 | FR24 | System must calculate and display GPA | Medium | Academic Records |
 | FR25 | System must track course completion status | High | Academic Records |
+
+## Non-Functional Requirements
+
+| ID | Requirement | Priority | Category |
+|----|-------------|----------|----------|
+| NFR1 | System must respond to user actions within 2 seconds | High | Performance |
+| NFR2 | System must support at least 1000 concurrent users | High | Performance |
+| NFR3 | System must be available 99.9% of the time | High | Reliability |
+| NFR4 | System must encrypt all sensitive data in transit and at rest | High | Security |
+| NFR5 | System must comply with FERPA regulations for student data privacy | High | Compliance |
+| NFR6 | System must maintain audit logs for all critical operations | High | Security |
+| NFR7 | System must provide role-based access control | High | Security |
+| NFR8 | System must be accessible on desktop and mobile devices | Medium | Usability |
+| NFR9 | System interface must be intuitive and require minimal training | Medium | Usability |
+| NFR10 | System must backup data daily | High | Reliability |
+| NFR11 | System must support database failover within 30 seconds | High | Reliability |
+| NFR12 | System must support integration with external payment systems via API | High | Interoperability |
+| NFR13 | System must support integration with email services via SMTP | Medium | Interoperability |
+| NFR14 | System must scale horizontally to handle increased load | Medium | Scalability |
+| NFR15 | System code must be well-documented and maintainable | Medium | Maintainability |
+| NFR16 | System must support multiple languages (i18n) | Low | Usability |
+| NFR17 | System must log all errors with stack traces | Medium | Maintainability |
+| NFR18 | System must validate all user inputs | High | Security |
+| NFR19 | System must provide data export functionality | Low | Usability |
+| NFR20 | System must meet WCAG 2.1 accessibility standards | Medium | Accessibility |
