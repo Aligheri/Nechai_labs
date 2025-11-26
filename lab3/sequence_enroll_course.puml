@@ -7,7 +7,11 @@ participant "Web UI" as UI
 participant "CourseController" as Controller
 participant "EnrollmentService" as Service
 participant "PrerequisiteValidator" as Validator
+participant "EnrollmentRepository" as EnrollRepo
+participant "TuitionCalculator" as Calculator
+participant "PaymentGateway" as Payment
 database "Database" as DB
+participant "EmailService" as Email
 
 == Enrollment Request ==
 Student -> UI: selectCourse(courseId)
@@ -33,16 +37,97 @@ activate DB
 DB --> Validator: prerequisites[]
 deactivate DB
 
-Validator --> Service: valid
-deactivate Validator
+alt Prerequisites Not Met
+    Validator --> Service: PrerequisiteException("Missing: Course XYZ")
+    Service --> Controller: error
+    Controller --> UI: showError("Prerequisites not met")
+    UI --> Student: displayError()
+else Prerequisites Met
+    Validator --> Service: valid
+    deactivate Validator
 
-Service --> Controller: enrollmentSuccess
-deactivate Service
+    == Verify Enrollment Status ==
+    Service -> EnrollRepo: checkEnrollmentStatus(studentId)
+    activate EnrollRepo
 
-Controller --> UI: success(enrollmentDetails)
-deactivate Controller
+    EnrollRepo -> DB: query enrollment
+    activate DB
+    DB --> EnrollRepo: currentCourses[]
+    deactivate DB
 
-UI --> Student: showConfirmation("Enrolled successfully")
-deactivate UI
+    alt Schedule Conflict
+        EnrollRepo --> Service: ConflictException("Time conflict")
+        Service --> Controller: error
+        Controller --> UI: showError("Schedule conflict")
+        UI --> Student: displayError()
+    else Course Full
+        EnrollRepo --> Service: CapacityException("Course full")
+        Service --> Controller: error
+        Controller --> UI: showError("Course is full")
+        UI --> Student: displayError()
+    else Enrollment Allowed
+        EnrollRepo --> Service: canEnroll
+        deactivate EnrollRepo
+
+        == Calculate Tuition ==
+        Service -> Calculator: calculateTuition(courseId)
+        activate Calculator
+
+        Calculator -> DB: getCourseCredits(courseId)
+        activate DB
+        DB --> Calculator: credits
+        deactivate DB
+
+        Calculator --> Service: tuitionAmount
+        deactivate Calculator
+
+        == Process Payment ==
+        Service -> Payment: processPayment(studentId, amount)
+        activate Payment
+
+        Payment -> Payment: validatePaymentMethod()
+
+        alt Payment Failed
+            Payment --> Service: PaymentFailedException()
+            Service --> Controller: error
+            Controller --> UI: showError("Payment failed")
+            UI --> Student: displayError()
+        else Payment Success
+            Payment --> Service: paymentConfirmation
+            deactivate Payment
+
+            == Create Enrollment ==
+            Service -> EnrollRepo: createEnrollment(studentId, courseId)
+            activate EnrollRepo
+
+            EnrollRepo -> DB: INSERT enrollment
+            activate DB
+            DB --> EnrollRepo: enrollmentId
+            deactivate DB
+
+            EnrollRepo --> Service: enrollment
+            deactivate EnrollRepo
+
+            == Send Notification ==
+            Service -> Email: sendEnrollmentConfirmation(studentId, courseId)
+            activate Email
+
+            Email -> Email: composeEmail()
+            Email -> Email: sendEmail()
+
+            Email --> Service: sent
+            deactivate Email
+
+            Service --> Controller: enrollmentSuccess
+            deactivate Service
+
+            Controller --> UI: success(enrollmentDetails)
+            deactivate Controller
+
+            UI --> Student: showConfirmation("Enrolled successfully")
+            deactivate UI
+        end
+    end
+end
 
 @enduml
