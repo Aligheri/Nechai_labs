@@ -1,0 +1,39 @@
+@startuml University_UseCase_Diagram
+
+left to right direction
+
+actor "Student" as student
+actor "Professor" as professor
+actor "Administrator" as admin
+
+package "University Course Management System" {
+    usecase "Register Student" as UC1
+    usecase "Enroll in Course" as UC2
+    usecase "Drop Course" as UC3
+    usecase "View Transcript" as UC4
+    usecase "View Course Catalog" as UC5
+
+    usecase "Assign Grade" as UC8
+    usecase "View Class Roster" as UC9
+    usecase "Manage Course" as UC10
+
+    usecase "Create Course" as UC12
+    usecase "Assign Professor" as UC13
+    usecase "Manage Schedule" as UC14
+}
+
+student --> UC2
+student --> UC3
+student --> UC4
+student --> UC5
+
+professor --> UC8
+professor --> UC9
+professor --> UC10
+
+admin --> UC1
+admin --> UC12
+admin --> UC13
+admin --> UC14
+
+@enduml
