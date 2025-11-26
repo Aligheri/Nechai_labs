@@ -1,0 +1,121 @@
+@startuml Register_Student_Sequence
+
+title Sequence Diagram: Register Student
+
+actor Administrator
+participant "Admin Portal" as Portal
+participant "UserController" as Controller
+participant "RegistrationService" as Service
+participant "IdentityVerifier" as Verifier
+participant "UserRepository" as UserRepo
+participant "StudentRepository" as StudentRepo
+database "Database" as DB
+participant "EmailService" as Email
+
+== Registration Request ==
+Administrator -> Portal: openRegistrationForm()
+activate Portal
+
+Portal --> Administrator: displayForm()
+
+Administrator -> Portal: submitStudentData(studentData)
+
+Portal -> Controller: registerStudent(studentData)
+activate Controller
+
+Controller -> Service: processRegistration(studentData)
+activate Service
+
+== Validate Input ==
+Service -> Service: validateInput(studentData)
+
+alt Invalid Data
+    Service --> Controller: ValidationException("Invalid data")
+    Controller --> Portal: error
+    Portal --> Administrator: showError("Please check input")
+else Valid Data
+
+    == Verify Identity ==
+    Service -> Verifier: verifyIdentity(studentData)
+    activate Verifier
+
+    Verifier -> Verifier: checkDocumentNumber()
+    Verifier -> Verifier: validateBirthDate()
+
+    alt Identity Verification Failed
+        Verifier --> Service: VerificationException("Invalid documents")
+        Service --> Controller: error
+        Controller --> Portal: error
+        Portal --> Administrator: showError("Identity verification failed")
+    else Identity Verified
+        Verifier --> Service: verified
+        deactivate Verifier
+
+        == Check Duplicate ==
+        Service -> UserRepo: findByEmail(email)
+        activate UserRepo
+
+        UserRepo -> DB: SELECT user by email
+        activate DB
+        DB --> UserRepo: user or null
+        deactivate DB
+
+        alt User Already Exists
+            UserRepo --> Service: existingUser
+            deactivate UserRepo
+            Service --> Controller: DuplicateException("Email exists")
+            Controller --> Portal: error
+            Portal --> Administrator: showError("User already exists")
+        else New User
+
+            == Create User Account ==
+            Service -> UserRepo: createUser(userData)
+            activate UserRepo
+
+            UserRepo -> DB: INSERT INTO users
+            activate DB
+            DB --> UserRepo: userId
+            deactivate DB
+
+            UserRepo --> Service: user
+            deactivate UserRepo
+
+            == Create Student Profile ==
+            Service -> StudentRepo: createStudent(studentData, userId)
+            activate StudentRepo
+
+            StudentRepo -> DB: INSERT INTO students
+            activate DB
+            DB --> StudentRepo: studentId
+            deactivate DB
+
+            StudentRepo --> Service: student
+            deactivate StudentRepo
+
+            == Generate Credentials ==
+            Service -> Service: generateTemporaryPassword()
+            Service -> Service: createStudentCredentials()
+
+            == Send Notification ==
+            Service -> Email: sendWelcomeEmail(student, credentials)
+            activate Email
+
+            Email -> Email: composeWelcomeEmail()
+            Email -> Email: sendEmail()
+
+            Email --> Service: emailSent
+            deactivate Email
+
+            Service --> Controller: registrationSuccess(studentId)
+            deactivate Service
+
+            Controller --> Portal: success(studentDetails)
+            deactivate Controller
+
+            Portal --> Administrator: showConfirmation("Student registered")
+            deactivate Portal
+        end
+    end
+end
+
+@enduml
