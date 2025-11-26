@@ -17,3 +17,15 @@
 | FR11 | System must allow professors to view class rosters | Medium | Course Management |
 | FR12 | System must support schedule management for courses | High | Scheduling |
 | FR13 | System must enable administrators to generate academic reports | Medium | Reporting |
+| FR14 | System must allow professors to update course syllabi | Low | Course Management |
+| FR15 | System must verify student enrollment status before grading | High | Grading |
+| FR16 | System must calculate tuition fees based on enrolled credits | High | Financial |
+| FR17 | System must process student payments through external payment system | High | Financial |
+| FR18 | System must send email notifications for enrollment confirmations | Medium | Notifications |
+| FR19 | System must send email notifications for grade postings | Medium | Notifications |
+| FR20 | System must verify user identity during registration | High | Security |
+| FR21 | System must allow administrators to manage user accounts | High | User Management |
+| FR22 | System must prevent enrollment in courses with schedule conflicts | High | Enrollment |
+| FR23 | System must enforce course capacity limits | High | Enrollment |
+| FR24 | System must calculate and display GPA | Medium | Academic Records |
+| FR25 | System must track course completion status | High | Academic Records |
