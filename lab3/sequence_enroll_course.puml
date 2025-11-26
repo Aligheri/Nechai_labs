@@ -1,0 +1,48 @@
+@startuml Enroll_in_Course_Sequence
+
+title Sequence Diagram: Enroll in Course
+
+actor Student
+participant "Web UI" as UI
+participant "CourseController" as Controller
+participant "EnrollmentService" as Service
+participant "PrerequisiteValidator" as Validator
+database "Database" as DB
+
+== Enrollment Request ==
+Student -> UI: selectCourse(courseId)
+activate UI
+
+UI -> Controller: enrollInCourse(studentId, courseId)
+activate Controller
+
+Controller -> Service: processEnrollment(studentId, courseId)
+activate Service
+
+== Check Prerequisites ==
+Service -> Validator: validatePrerequisites(studentId, courseId)
+activate Validator
+
+Validator -> DB: getStudentTranscript(studentId)
+activate DB
+DB --> Validator: completedCourses[]
+deactivate DB
+
+Validator -> DB: getCoursePrerequisites(courseId)
+activate DB
+DB --> Validator: prerequisites[]
+deactivate DB
+
+Validator --> Service: valid
+deactivate Validator
+
+Service --> Controller: enrollmentSuccess
+deactivate Service
+
+Controller --> UI: success(enrollmentDetails)
+deactivate Controller
+
+UI --> Student: showConfirmation("Enrolled successfully")
+deactivate UI
+
+@enduml
