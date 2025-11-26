@@ -5,21 +5,35 @@ left to right direction
 actor "Student" as student
 actor "Professor" as professor
 actor "Administrator" as admin
+actor "Payment System" as payment << External System >>
+actor "Email Service" as email << External System >>
 
 package "University Course Management System" {
+
     usecase "Register Student" as UC1
     usecase "Enroll in Course" as UC2
     usecase "Drop Course" as UC3
     usecase "View Transcript" as UC4
     usecase "View Course Catalog" as UC5
+    usecase "Search Courses" as UC6
+    usecase "Check Prerequisites" as UC7
 
     usecase "Assign Grade" as UC8
     usecase "View Class Roster" as UC9
     usecase "Manage Course" as UC10
+    usecase "Update Syllabus" as UC11
 
     usecase "Create Course" as UC12
     usecase "Assign Professor" as UC13
     usecase "Manage Schedule" as UC14
+    usecase "Generate Reports" as UC15
+    usecase "Manage Users" as UC16
+    usecase "Verify Identity" as UC17
+
+    usecase "Process Payment" as UC18
+    usecase "Send Notification" as UC19
+    usecase "Calculate Tuition" as UC20
+    usecase "Verify Enrollment Status" as UC21
 }
 
 student --> UC2
@@ -30,10 +44,46 @@ student --> UC5
 professor --> UC8
 professor --> UC9
 professor --> UC10
+professor --> UC11
 
 admin --> UC1
 admin --> UC12
 admin --> UC13
 admin --> UC14
+admin --> UC15
+admin --> UC16
+
+UC2 ..> UC7 : <<include>>
+UC2 ..> UC21 : <<include>>
+UC2 ..> UC18 : <<include>>
+
+UC1 ..> UC17 : <<include>>
+UC1 ..> UC19 : <<include>>
+
+UC3 ..> UC20 : <<include>>
+
+UC8 ..> UC19 : <<include>>
+
+UC5 ..> UC6 : <<extend>>
+
+UC2 --> payment : uses
+UC18 --> payment : calls
+
+UC1 --> email : uses
+UC8 --> email : uses
+UC19 --> email : sends
+
+note right of UC2
+  Main enrollment use case
+  Includes prerequisite check,
+  enrollment verification,
+  and payment processing
+end note
+
+note right of UC7
+  Automatically validates
+  student has completed
+  required courses
+end note
 
 @enduml
