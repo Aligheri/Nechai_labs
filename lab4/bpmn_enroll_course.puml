@@ -1,0 +1,134 @@
+@startuml Course_Enrollment_BPMN
+
+title BPMN 2.0 Diagram: Course Enrollment Process
+caption Business Process Modeling Notation - Corresponds to UC2 (Enroll in Course)
+
+skinparam {
+    ActivityStartColor #90EE90
+    ActivityEndColor #FF6347
+    ActivityBackgroundColor #FFFACD
+    ActivityBorderColor #666666
+    ActivityDiamondBackgroundColor #87CEEB
+    ActivityDiamondBorderColor #4169E1
+}
+
+|#E6F3FF|Student|
+|#E8F5E9|University System|
+|#FFF3E0|External Services|
+
+|Student|
+start
+note right: **Start Event**
+:Browse Course Catalog;
+:Select Desired Course;
+:Submit Enrollment Request;
+
+|University System|
+:Receive Enrollment Request;
+:Validate Student Identity;
+
+fork
+    :Fetch Student Transcript;
+fork again
+    :Fetch Course Prerequisites;
+end fork
+note right: **Parallel Gateway (AND)**
+
+:Validate Prerequisites;
+
+if (Prerequisites Met?) then (no)
+    :Prepare Error Message;
+    |Student|
+    :Display Prerequisites Error;
+    note right: **End Event (Error)**
+    kill
+else (yes)
+endif
+
+|University System|
+fork
+    :Check Schedule Conflicts;
+fork again
+    :Check Course Capacity;
+end fork
+
+if (Schedule Conflict?) then (yes)
+    :Prepare Conflict Error;
+    |Student|
+    :Display Schedule Error;
+    kill
+else (no)
+endif
+
+|University System|
+if (Seats Available?) then (no)
+    :Prepare Capacity Error;
+    |Student|
+    :Display Capacity Error;
+    kill
+else (yes)
+endif
+
+|University System|
+:Calculate Tuition;
+note left
+    **Intermediate Event**
+    Timer: 15 min timeout
+end note
+
+:Prepare Payment Request;
+
+|External Services|
+:Process Payment;
+note right: **Service Task**
+:Validate Payment Method;
+:Execute Transaction;
+
+if (Payment Success?) then (no)
+    :Return Payment Error;
+    |University System|
+    :Handle Payment Failure;
+    |Student|
+    :Display Payment Error;
+    kill
+else (yes)
+    :Return Confirmation;
+    :Generate Transaction ID;
+endif
+
+|University System|
+:Create Enrollment Record;
+note right: **Message Event**
+
+fork
+    :Update Course Capacity;
+fork again
+    :Update Student Records;
+fork again
+    |External Services|
+    :Compose Confirmation Email;
+    :Send Email to Student;
+    note left: **Send Task**
+end fork
+
+|University System|
+:Generate Enrollment Confirmation;
+
+|Student|
+:Receive Confirmation;
+:View Enrollment Details;
+note right: **End Event (Success)**
+stop
+
+legend right
+    **BPMN 2.0 Elements Used:**
+    |= Symbol |= Element |
+    | Circle (green) | Start Event |
+    | Circle (red) | End Event |
+    | Diamond | Gateway |
+    | Rounded Rectangle | Task |
+    | Thick Bar | Parallel Gateway |
+    | Horizontal Bands | Pools/Lanes |
+endlegend
+
+@enduml
