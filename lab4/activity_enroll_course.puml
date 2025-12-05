@@ -1,0 +1,121 @@
+@startuml Course_Enrollment_Activity_Diagram
+
+title UML Activity Diagram: Course Enrollment Process
+caption Corresponds to UC2 (Enroll in Course) from Use Case Model
+
+|#LightBlue|Student|
+|#LightGreen|System|
+|#LightYellow|Payment Gateway|
+|#LightPink|Email Service|
+
+|Student|
+start
+:Select course from catalog;
+:Submit enrollment request;
+
+|System|
+:Receive enrollment request;
+:Validate student session;
+
+fork
+    :Get student transcript
+    from Database;
+fork again
+    :Get course prerequisites
+    from Database;
+end fork
+
+:Check prerequisites;
+
+if (Prerequisites met?) then (no)
+    :Generate error message:
+    "Missing prerequisites";
+    |Student|
+    :Display prerequisites error;
+    stop
+else (yes)
+endif
+
+|System|
+:Check current enrollments;
+
+fork
+    :Validate schedule conflicts;
+fork again
+    :Check course capacity;
+end fork
+
+if (Schedule conflict?) then (yes)
+    :Generate error message:
+    "Time slot conflict detected";
+    |Student|
+    :Display schedule conflict error;
+    stop
+else (no)
+endif
+
+|System|
+if (Course has available seats?) then (no)
+    :Generate error message:
+    "Course is full";
+    |Student|
+    :Display capacity error;
+    stop
+else (yes)
+endif
+
+|System|
+:Get course credits from Database;
+:Calculate tuition amount;
+note right
+    Tuition = Credits x Rate per Credit
+    Based on course type and student status
+end note
+
+:Request payment authorization;
+
+|Payment Gateway|
+:Receive payment request;
+:Validate payment method;
+:Process transaction;
+
+if (Payment successful?) then (no)
+    :Return payment failure;
+    |System|
+    :Generate error message:
+    "Payment processing failed";
+    |Student|
+    :Display payment error;
+    :Offer retry option;
+    stop
+else (yes)
+    :Return payment confirmation;
+    :Generate transaction ID;
+endif
+
+|System|
+:Create enrollment record;
+:Update course capacity;
+:Update student course list;
+
+fork
+    :Save enrollment to Database;
+fork again
+    |Email Service|
+    :Receive notification request;
+    :Compose confirmation email;
+    :Include course details;
+    :Include payment receipt;
+    :Send email to student;
+end fork
+
+|System|
+:Generate enrollment confirmation;
+
+|Student|
+:Receive confirmation message;
+:View enrollment details;
+:Download receipt (optional);
+stop
+
+@enduml
