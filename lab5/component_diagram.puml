@@ -1,0 +1,186 @@
+@startuml University_Course_Management_Component_Diagram
+
+title UML Component Diagram: University Course Management System
+caption Corresponds to ER Model, Use Cases (UC1-UC21), Sequence Diagrams, and BPMN Processes
+
+skinparam {
+    ComponentStyle uml2
+    BackgroundColor white
+    ComponentBackgroundColor #FFFACD
+    DatabaseBackgroundColor #E8F5E9
+}
+
+' ========== SYSTEM BOUNDARY ==========
+rectangle "<<System Boundary>>\nUniversity Course Management System" as SystemBoundary {
+
+    ' ========== UI LAYER ==========
+    package "UI Layer" as UILayer <<Presentation>> #E6F3FF {
+        component [Student Portal] as StudentUI
+        component [Professor Portal] as ProfessorUI
+        component [Admin Portal] as AdminUI
+    }
+
+    ' ========== API LAYER ==========
+    package "API Layer" as APILayer <<Controller>> #FFFACD {
+        component [API Gateway] as APIGateway
+        component [Auth Controller] as AuthController
+        component [Course Controller] as CourseController
+        component [Enrollment Controller] as EnrollmentController
+        component [Grade Controller] as GradeController
+    }
+
+    ' ========== SERVICE LAYER ==========
+    package "Service Layer" as ServiceLayer <<Business>> #FFE4E1 {
+        component [User Service] as UserService
+        component [Course Service] as CourseService
+        component [Enrollment Service] as EnrollmentService
+        component [Grade Service] as GradeService
+        component [Tuition Calculator] as TuitionService
+        component [Notification Service] as NotificationService
+        component [Prerequisite Validator] as PrereqValidator
+    }
+
+    ' ========== DATA ACCESS LAYER ==========
+    package "Data Access Layer" as DALayer <<Persistence>> #E8F5E9 {
+        component [User Repository] as UserRepo
+        component [Course Repository] as CourseRepo
+        component [Enrollment Repository] as EnrollRepo
+        component [Grade Repository] as GradeRepo
+    }
+
+    ' ========== DATABASE ==========
+    database "PostgreSQL\n<<Database>>" as DB
+}
+
+' ========== EXTERNAL SYSTEMS ==========
+cloud "<<External Services>>" as ExternalServices #FFF0F5 {
+    component [Payment Gateway\n<<Stripe API>>] as PaymentGW
+    component [Email Service\n<<SendGrid>>] as EmailSvc
+    component [Identity Verifier\n<<Gov API>>] as IdentityVerifier
+}
+
+' ========== PROVIDED INTERFACES ==========
+interface "IUserService" as IUser
+interface "ICourseService" as ICourse
+interface "IEnrollmentService" as IEnroll
+interface "IGradeService" as IGrade
+interface "ITuitionService" as ITuition
+interface "INotificationService" as INotify
+interface "IPrerequisiteValidator" as IPrereq
+
+interface "IUserRepository" as IUserRepo
+interface "ICourseRepository" as ICourseRepo
+interface "IEnrollmentRepository" as IEnrollRepo
+interface "IGradeRepository" as IGradeRepo
+
+interface "IPaymentGateway" as IPayment
+interface "IEmailService" as IEmail
+interface "IIdentityVerifier" as IIdentity
+
+' ========== SERVICE PROVIDED INTERFACES (LOLLIPOP) ==========
+UserService -down- IUser
+CourseService -down- ICourse
+EnrollmentService -down- IEnroll
+GradeService -down- IGrade
+TuitionService -down- ITuition
+NotificationService -down- INotify
+PrereqValidator -down- IPrereq
+
+' ========== REPOSITORY PROVIDED INTERFACES ==========
+UserRepo -down- IUserRepo
+CourseRepo -down- ICourseRepo
+EnrollRepo -down- IEnrollRepo
+GradeRepo -down- IGradeRepo
+
+' ========== EXTERNAL PROVIDED INTERFACES ==========
+PaymentGW -up- IPayment
+EmailSvc -up- IEmail
+IdentityVerifier -up- IIdentity
+
+' ========== UI TO API (HTTP) ==========
+StudentUI -down-> APIGateway : <<HTTP/REST>>
+ProfessorUI -down-> APIGateway : <<HTTP/REST>>
+AdminUI -down-> APIGateway : <<HTTP/REST>>
+
+' ========== API GATEWAY TO CONTROLLERS ==========
+APIGateway -down-> AuthController
+APIGateway -down-> CourseController
+APIGateway -down-> EnrollmentController
+APIGateway -down-> GradeController
+
+' ========== CONTROLLERS REQUIRE SERVICE INTERFACES ==========
+AuthController -down-( IUser
+CourseController -down-( ICourse
+EnrollmentController -down-( IEnroll
+GradeController -down-( IGrade
+
+' ========== SERVICE INTERNAL DEPENDENCIES ==========
+EnrollmentService -left-( IPrereq
+EnrollmentService -right-( ITuition
+EnrollmentService ..> INotify : <<uses>>
+GradeService ..> INotify : <<uses>>
+UserService ..> INotify : <<uses>>
+
+' ========== SERVICES REQUIRE REPOSITORY INTERFACES ==========
+UserService -down-( IUserRepo
+CourseService -down-( ICourseRepo
+EnrollmentService -down-( IEnrollRepo
+GradeService -down-( IGradeRepo
+PrereqValidator ..> IEnrollRepo : <<query>>
+TuitionService ..> ICourseRepo : <<query>>
+
+' ========== REPOSITORIES TO DATABASE ==========
+UserRepo -down-> DB : <<SQL/JDBC>>
+CourseRepo -down-> DB : <<SQL/JDBC>>
+EnrollRepo -down-> DB : <<SQL/JDBC>>
+GradeRepo -down-> DB : <<SQL/JDBC>>
+
+' ========== EXTERNAL INTEGRATIONS ==========
+TuitionService -down-( IPayment
+NotificationService -down-( IEmail
+UserService -down-( IIdentity
+
+' ========== NOTES ==========
+note right of UILayer
+    **Presentation Layer**
+    Web-based portals for:
+    - Students (UC2-UC7)
+    - Professors (UC8-UC11)
+    - Administrators (UC12-UC16)
+end note
+
+note right of ServiceLayer
+    **Business Logic**
+    Implements:
+    - Use Cases UC1-UC21
+    - Sequence Diagrams
+    - BPMN Enrollment Process
+end note
+
+note right of DALayer
+    **Data Access**
+    ER Model entities:
+    Student, Professor, Course,
+    Enrollment, Department, Classroom
+end note
+
+note bottom of ExternalServices
+    **External Integrations**
+    - Payment: Stripe API (HTTPS)
+    - Email: SendGrid (SMTP/API)
+    - Identity: Government API (HTTPS)
+end note
+
+' ========== LEGEND ==========
+legend right
+    |= Symbol |= Meaning |
+    | [Component] | System module |
+    | --o | Provided Interface |
+    | --( | Required Interface |
+    | --> | Dependency |
+    | ..> | Usage dependency |
+    | <<HTTP/REST>> | REST API |
+    | <<SQL/JDBC>> | Database access |
+endlegend
+
+@enduml
